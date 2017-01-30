@@ -24,6 +24,7 @@ class Interpreter:
             pass
 
     def eval_token(self, tok):
+        # korean
         if tok[0] == '형':
             self.push(self.current_stack, tok[1] * tok[2])
         elif tok[0] == '항':
@@ -83,6 +84,9 @@ class Interpreter:
             for _ in range(tok[1]):
                 self.push(tok[2], val)
             self.current_stack = tok[2]
+        # heart
+        if tok[3] is not None:
+            pass
 
     def push(self, stack, value):
         while len(self.stacks) <= stack:

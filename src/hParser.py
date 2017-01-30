@@ -72,6 +72,7 @@ def parse(code):
                     dot_len += 3
                 i += 1
         # 하트 구역 해석
+        # TODO: 전위 표기법으로 바꾸기
         if not end:
             last = i
             while last < len(code) and code[last] not in kor:
