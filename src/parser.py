@@ -1,10 +1,17 @@
+import re
+
 hearts = '♥❤💕💖💗💘💙💚💛💜💝'
+kor = '형혀항핫하흣흡흑흐'
+
+
+def is_korean(ch):
+    return re.search('[가-힇]', ch) is not None
 
 
 def parse(code):
     i = 0
     while i < len(code):
-        tok, ch_len, dot_len = None, 0, 0
+        tok, ch_len, dot_len, zone = None, 0, 0, None
         end = False
         # 한글 글자 해석
         if code[i] == '형':
@@ -12,7 +19,9 @@ def parse(code):
         elif code[i] == '혀':
             ch_len = 1
             while code[i] != '엉':
-                i, ch_len = i + 1, ch_len + 1
+                if is_korean(code[i]):
+                    ch_len += 1
+                i += 1
             tok = '형'
         elif code[i] == '항':
             tok, ch_len = '항', 1
@@ -21,7 +30,9 @@ def parse(code):
         elif code[i] == '하':
             ch_len = 1
             while code[i] not in '앗앙':
-                i, ch_len = i + 1, ch_len + 1
+                if is_korean(code[i]):
+                    ch_len += 1
+                i += 1
             if code[i] == '앗':
                 tok = '핫'
             else:
@@ -35,7 +46,9 @@ def parse(code):
         elif code[i] == '흐':
             ch_len = 1
             while code[i] not in '읏읍윽':
-                i, ch_len = i + 1, ch_len + 1
+                if is_korean(code[i]):
+                    ch_len += 1
+                i += 1
             if code[i] == '읏':
                 tok = '흣'
             elif code[i] == '읍':
@@ -46,7 +59,7 @@ def parse(code):
         # 말줄임표 해석
         if not end:
             while i < len(code):
-                if code[i] in '형혀항핫하흣흡흑흐':
+                if code[i] in kor:
                     end = True
                     i -= 1
                     break
@@ -58,9 +71,21 @@ def parse(code):
                     dot_len += 3
                 i += 1
         # 하트 구역 해석
+        '''
         if not end:
+            last = i
+            while code[last] not in kor:
+                last += 1
+            zone = str([o for o in code[i:last] if o in hearts + '?!'])
             pass
+        '''
         i += 1
-        yield tok, ch_len, dot_len
+        yield tok, ch_len, dot_len, zone
 
-print(list(parse('혀어어엉.....하앗..흡흐아아읏')))
+
+assert list(parse('흐...읍')) == [('흡', 2, 0, None)]
+assert list(parse('혀일이삼사오육앙앗읏읍엉')) == [('형', 12, 0, None)]
+assert list(parse('혀일....이삼사오육앙♥앗?!읏♡읍...엉')) == [('형', 12, 0, None)]
+assert list(parse('하흐읏앗앙')) == [('핫', 4, 0, None)]
+assert list(parse('하앗. … ⋯ ⋮')) == [('핫', 2, 10, None)]
+assert list(parse('혀읏......잠....하앙....혀엉. .....')) == [('형', 7, 6, None)]
