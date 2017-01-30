@@ -1,6 +1,6 @@
 import re
 
-hearts = '♥❤💕💖💗💘💙💚💛💜💝'
+hearts = '♥❤💕💖💗💘💙💚💛💜💝♡'
 kor = '형혀항핫하흣흡흑흐'
 
 
@@ -9,6 +9,7 @@ def is_korean(ch):
 
 
 def parse(code):
+    code = code.replace(' ', '')
     i = 0
     while i < len(code):
         tok, ch_len, dot_len, zone = None, 0, 0, None
@@ -71,14 +72,14 @@ def parse(code):
                     dot_len += 3
                 i += 1
         # 하트 구역 해석
-        '''
         if not end:
             last = i
-            while code[last] not in kor:
+            while last < len(code) and code[last] not in kor:
                 last += 1
-            zone = str([o for o in code[i:last] if o in hearts + '?!'])
-            pass
-        '''
+            zone = ''.join([o for o in code[i:last] if o in hearts + '?!'])
+            if len(zone) == 0:
+                zone = None
+            i = last
         i += 1
         yield tok, ch_len, dot_len, zone
 
@@ -89,3 +90,5 @@ assert list(parse('혀일....이삼사오육앙♥앗?!읏♡읍...엉')) == [('
 assert list(parse('하흐읏앗앙')) == [('핫', 4, 0, None)]
 assert list(parse('하앗. … ⋯ ⋮')) == [('핫', 2, 10, None)]
 assert list(parse('혀읏......잠....하앙....혀엉. .....')) == [('형', 7, 6, None)]
+assert list(parse('하아앗.. . ? ♥ ! 💖')) == [('핫', 3, 3, '?♥!💖')]
+assert list(parse('혀엉...♥?!♡')) == [('형', 2, 3, '♥?!♡')]
