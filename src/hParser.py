@@ -11,6 +11,7 @@ def is_korean(ch):
 def parse(code):
     code = code.replace(' ', '')
     i = 0
+    index = -1
     while i < len(code):
         tok, ch_len, dot_len, zone = None, 0, 0, None
         end = False
@@ -82,15 +83,16 @@ def parse(code):
                 zone = None
             i = last
         i += 1
-        yield tok, ch_len, dot_len, zone
+        index += 1
+        yield tok, ch_len, dot_len, zone, index
 
 
 if __name__ == '__main__':
-    assert list(parse('흐...읍')) == [('흡', 2, 0, None)]
-    assert list(parse('혀일이삼사오육앙앗읏읍엉')) == [('형', 12, 0, None)]
-    assert list(parse('혀일....이삼사오육앙♥앗?!읏♡읍...엉')) == [('형', 12, 0, None)]
-    assert list(parse('하흐읏앗앙')) == [('핫', 4, 0, None)]
-    assert list(parse('하앗. … ⋯ ⋮')) == [('핫', 2, 10, None)]
-    assert list(parse('혀읏......잠....하앙....혀엉. .....')) == [('형', 7, 6, None)]
-    assert list(parse('하아앗.. . ? ♥ ! 💖')) == [('핫', 3, 3, '?♥!💖')]
-    assert list(parse('혀엉...♥?!♡')) == [('형', 2, 3, '♥?!♡')]
+    assert list(parse('흐...읍')) == [('흡', 2, 0, None, 0)]
+    assert list(parse('혀일이삼사오육앙앗읏읍엉')) == [('형', 12, 0, None, 0)]
+    assert list(parse('혀일....이삼사오육앙♥앗?!읏♡읍...엉')) == [('형', 12, 0, None, 0)]
+    assert list(parse('하흐읏앗앙')) == [('핫', 4, 0, None, 0)]
+    assert list(parse('하앗. … ⋯ ⋮')) == [('핫', 2, 10, None, 0)]
+    assert list(parse('혀읏......잠....하앙....혀엉. .....')) == [('형', 7, 6, None, 0)]
+    assert list(parse('하아앗.. . ? ♥ ! 💖')) == [('핫', 3, 3, '?♥!💖', 0)]
+    assert list(parse('혀엉...♥?!♡')) == [('형', 2, 3, '♥?!♡', 0)]
