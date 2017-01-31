@@ -1,7 +1,6 @@
 import hParser as parser
 import sys
 from math import floor
-from itertools import cycle
 
 
 class EndException(Exception):
@@ -11,82 +10,88 @@ class EndException(Exception):
 class Interpreter:
     def __init__(self, code):
         self.code = code
+        self.toks = list(parser.parse(self.code))
         self.stacks = [[], [], [], []]
         self.current_stack = 3
         self.commands = []
         self.out = None
+        self.current_loc = 0
+        self.end = False
 
     def eval(self):
-        try:
-            for tok in cycle(parser.parse(self.code)):
-                self.eval_token(tok)
-        except EndException:
-            pass
+        while not self.end:
+            if self.current_loc == len(self.toks):
+                self.current_loc = 0
+            self.eval_token(self.toks[self.current_loc])
+            self.current_loc += 1
 
     def eval_token(self, tok):
-        # korean
-        if tok[0] == '형':
-            self.push(self.current_stack, tok[1] * tok[2])
-        elif tok[0] == '항':
-            res = 0
-            for _ in range(tok[1]):
-                val = self.pop(self.current_stack)
-                if val is None:
-                    res = None
-                elif res is not None:
-                    res += val
-            self.push(tok[2], res)
-        elif tok[0] == '핫':
-            res = 1
-            for _ in range(tok[1]):
-                val = self.pop(self.current_stack)
-                if val is None:
-                    res = None
-                elif res is not None:
-                    res *= val
-            self.push(tok[2], res)
-        elif tok[0] == '흣':
-            temp = []
-            for _ in range(tok[1]):
-                val = self.pop(self.current_stack)
-                if val is not None:
-                    temp.insert(0, -1 * val)
-                else:
-                    temp.insert(0, val)
-            if None in temp:
-                res = None
-            else:
-                res = sum(temp)
-            for _ in range(tok[1]):
-                self.push(self.current_stack, temp.pop())
-            self.push(tok[2], res)
-        elif tok[0] == '흡':
-            temp = []
-            res = 1
-            for _ in range(tok[1]):
-                val = self.pop(self.current_stack)
-                if val is not None:
-                    if val == 0:
-                        val = None
+        try:
+            # korean
+            if tok[0] == '형':
+                self.push(self.current_stack, tok[1] * tok[2])
+            elif tok[0] == '항':
+                res = 0
+                for _ in range(tok[1]):
+                    val = self.pop(self.current_stack)
+                    if val is None:
+                        res = None
+                    elif res is not None:
+                        res += val
+                self.push(tok[2], res)
+            elif tok[0] == '핫':
+                res = 1
+                for _ in range(tok[1]):
+                    val = self.pop(self.current_stack)
+                    if val is None:
+                        res = None
+                    elif res is not None:
+                        res *= val
+                self.push(tok[2], res)
+            elif tok[0] == '흣':
+                temp = []
+                for _ in range(tok[1]):
+                    val = self.pop(self.current_stack)
+                    if val is not None:
+                        temp.insert(0, -1 * val)
                     else:
-                        val = 1 / val
-                        if res is not None:
-                            res *= val
-                else:
+                        temp.insert(0, val)
+                if None in temp:
                     res = None
-                temp.insert(0, val)
-            for _ in range(tok[1]):
-                self.push(self.current_stack, temp.pop())
-            self.push(tok[2], res)
-        elif tok[0] == '흑':
-            val = self.pop(self.current_stack)
-            self.push(self.current_stack, val)
-            for _ in range(tok[1]):
-                self.push(tok[2], val)
-            self.current_stack = tok[2]
-        # heart
-        if tok[3] is not None:
-            pass
+                else:
+                    res = sum(temp)
+                for _ in range(tok[1]):
+                    self.push(self.current_stack, temp.pop())
+                self.push(tok[2], res)
+            elif tok[0] == '흡':
+                temp = []
+                res = 1
+                for _ in range(tok[1]):
+                    val = self.pop(self.current_stack)
+                    if val is not None:
+                        if val == 0:
+                            val = None
+                        else:
+                            val = 1 / val
+                            if res is not None:
+                                res *= val
+                    else:
+                        res = None
+                    temp.insert(0, val)
+                for _ in range(tok[1]):
+                    self.push(self.current_stack, temp.pop())
+                self.push(tok[2], res)
+            elif tok[0] == '흑':
+                val = self.pop(self.current_stack)
+                self.push(self.current_stack, val)
+                for _ in range(tok[1]):
+                    self.push(tok[2], val)
+                self.current_stack = tok[2]
+            # heart
+            if tok[3] is not None:
+                pass
+        except EndException:
+            self.end = True
 
     def push(self, stack, value):
         while len(self.stacks) <= stack:
