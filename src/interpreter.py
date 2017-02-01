@@ -14,6 +14,7 @@ class Interpreter:
         self.stacks = [[], [], [], []]
         self.current_stack = 3
         self.commands = []
+        self.recent_command = -1
         self.out = None
         self.current_loc = 0
         self.end = False
@@ -88,8 +89,42 @@ class Interpreter:
                     self.push(tok[2], val)
                 self.current_stack = tok[2]
             # heart
-            if tok[3] is not None:
-                pass
+            # 여기는 전위 표기법으로 되어있을때 처리하는 거임..
+            hearts = tok[3]
+            for i in range(len(hearts)):
+                # 물음표
+                if hearts[i] == '?':
+                    p = self.pop(self.current_stack)
+                    if p is None:
+                        # hearts[i+2]
+                    elif tok[1] * tok[2] >= p:
+                        # hearts[i+2]
+                    else:
+                        # hearts[i+1]
+                # 느낌표
+                elif hearts[i] == '!':
+                    p = self.pop(self.current_stack)
+                    if p is None:
+                        # hearts[i+2]
+                    elif p != tok[1] * tok[2]:
+                        # hearts[i+2]
+                    else:
+                        # hearts[i+1]
+                # 찬 하트일 때
+                elif hearts[i] in parser.hearts:
+                    cmd = (tok[1] * tok[2], hearts[i])
+                    # 저장된 명령어가 있으면 이동
+                    if cmd in self.commands:
+                            self.current_loc = self.commands.index(cmd)
+                            self.recent_command = self.current_loc
+                            return
+                    # 없으니까 등록
+                    self.commands.append(cmd)
+                # 빈 하트일 때
+                elif hearts[i] == '♡':
+                    if not self.recent_command == -1:
+                        self.current_loc = self.recent_command
+
         except EndException:
             self.end = True
 
